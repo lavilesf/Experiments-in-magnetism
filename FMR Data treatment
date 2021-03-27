@@ -1,0 +1,121 @@
+library(ggplot2)
+library(readxl)
+library(readr)
+library(tidyverse)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(data.table)
+library(foreign)
+
+setwd("C:/Users/Toshiba/Google Drive/Datos/FMR/test_data/")
+nombre<-"test_data"
+
+################################################################################
+##     Enjoy! Name the files only with the angle value
+################################################################################
+
+list<-list.files(pattern = ".*.dat")
+datalist <- lapply(list, function(x) {read.table(file = x, header = F, sep ="")})
+datafr = do.call("cbind", datalist)  # Add new data as new columns in df
+write.table(datafr, file="alldata.txt", append = FALSE, sep = "\t", dec = ".",
+            row.names = FALSE, col.names = TRUE)
+################################################################################
+##     Plot all spectra from raw data
+################################################################################
+
+colodd<-seq_len(ncol(datafr)) %% 2
+data_colodd<- datafr[,colodd==1]
+coleven<-seq_len(ncol(datafr)) %% 2
+data_coleven<- datafr[,coleven==0]
+matplot(data_colodd,data_coleven,type="b",pch=19,xlab="Magnetic Field (Oe)",ylab="FMR amplitude (a. u.)",main=paste("All FMR spectra - sample",nombre),axes=T)
+
+pdf(paste("all_spectra.pdf"),onefile = F, paper = "USr", width = 11, height = 8.5)
+matplot(data_colodd,data_coleven,type="b",pch=19,xlab="Magnetic Field (Oe)",ylab="FMR amplitude (a. u.)",main=paste("All FMR spectra - sample",nombre),axes=T)
+dev.off()
+
+################################################################################
+##     Extract resonance field and linewidth in txt file
+################################################################################
+angular_variation = "Angular_variation.txt"
+cat("", file=angular_variation, append=FALSE, sep = "\n")
+
+for (i in list) {
+ Muestra<-tools::file_path_sans_ext(i)
+ data<-read.table(paste(i))
+ df<-data.frame(data)
+ colnames(df) <- c("Field","Intensity")
+################################################################################
+##     Obtain linewidth and resonance field
+################################################################################
+minI<-min(df[,"Intensity"],na.rm = T)
+maxI<-max(df[,"Intensity"],na.rm = T)
+minH<-df$Field[[which(df$Intensity==min(df$Intensity))]]
+maxH<-df$Field[[which(df$Intensity==max(df$Intensity))]]
+
+dftemp<-df[which(df$Intensity==max(df$Intensity)):which(df$Intensity==min(df$Intensity)),]
+minH<-dftemp$Field[[which(dftemp$Intensity==min(dftemp$Intensity))]]
+
+for (k in dftemp){
+  resonan<-dftemp$Field[[which(abs(k)==min(abs(k)))]]
+  }
+
+line_width<-minH-maxH
+dH<-round(as.numeric(line_width), 0)
+Hr<-round(as.numeric(resonan), 0)
+################################################################################
+##     Extract data
+################################################################################
+Angle <- c(Muestra)
+Linewidth<-c(dH)
+Resonance<-c(Hr)
+line= paste(Muestra, dH, Hr)
+write(line,file="angular_variation.txt",append=TRUE)
+################################################################################
+##     Plot data and export to pdf
+################################################################################
+curva<- ggplot(df, aes(x = Field, y = Intensity)) + 
+        labs(title = paste("Angle =",Muestra, "° \nHr =",Hr,"Oe, dH =",dH, "Oe" ), x="Magnetic Field (Oe)", y="Intensity (a. u.)") +
+        geom_point(colour="blue", size=2,shape=19) + 
+        theme(text = element_text(size = 30)) +
+        #annotate("text", x=2000, y= 2, label=paste(Muestra,"\nHr =",Hr,"Oe\ndH =",dH, "Oe"),size = 5) +
+        #geom_vline(xintercept = 0) +
+        geom_hline(yintercept = 0) +
+      geom_path(linetype="solid", colour="blue") 
+
+pdf(paste(Muestra,".pdf"),onefile = F, paper = "USr", width = 11, height = 8.5)
+print(curva)
+dev.off()
+}
+################################################################################
+##     Plot angular dependence
+################################################################################
+
+angular<-read.table("Angular_variation.txt")
+df2<- data.frame(angular)
+colnames(df2) <- c("a","Linewidth","Resonance")
+
+campo_resonancia<- ggplot(df2, aes(x = a, y = Resonance)) + 
+  labs(title = paste(nombre), x=(expression(paste(alpha,"(°)"))), y=(expression("Hr (Oe)"))) +
+  geom_point(colour="blue", size=2,shape=19) + 
+  theme(text = element_text(size = 30)) +
+  #annotate("text", x=2000, y= 2, label=paste(Muestra,"\nHr =",Hr,"Oe\ndH =",dH, "Oe"),size = 5) +
+  geom_vline(xintercept = 0) +
+  #geom_hline(yintercept = 0) +
+  geom_path(linetype="solid", colour="blue") 
+pdf(paste("Hr vs alpha.pdf"),onefile = F, paper = "USr", width = 11, height = 8.5)
+print(campo_resonancia)
+dev.off()
+
+ancho_linea<- ggplot(df2, aes(x = a, y = Linewidth)) + 
+  labs(title = paste(nombre), x=(expression(paste(alpha, "(°)"))), y=(expression(paste(Delta,"H (Oe)")))) +
+  geom_point(colour="blue", size=2,shape=19) + 
+  theme(text = element_text(size = 30)) +
+  #annotate("text", x=2000, y= 2, label=paste(Muestra,"\nHr =",Hr,"Oe\ndH =",dH, "Oe"),size = 5) +
+  geom_vline(xintercept = 0) +
+  #geom_hline(yintercept = 0) +
+  geom_path(linetype="solid", colour="blue") 
+pdf(paste("dH vs alpha.pdf"),onefile = F, paper = "USr", width = 11, height = 8.5)
+print(ancho_linea)
+dev.off()
+################################################################
