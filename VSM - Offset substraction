@@ -20,7 +20,6 @@ Msat<-(max(data_offset[,2])-min(data_offset[,2]))/2
 Ms<- Msat/V
 z<-format(round(Ms, 2), nsmall = 2)
 
-
 curva<- ggplot(data_offset, aes(x = Field, y = Moment)) + 
         labs(title = paste(Muestra,"\nMs=",z,"emu/cm3"), x="Magnetic Field (Oe)", y="Moment (emu)") +
         geom_point(colour="blue", size=2.5,shape=19) + 
