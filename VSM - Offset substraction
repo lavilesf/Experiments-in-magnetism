@@ -1,0 +1,36 @@
+library(ggplot2)
+library(readxl)
+library(readr)
+setwd("D:/Luis/Datos/VSM/A005-ang") ### seleccionar carpeta
+data<-read.table("A005-ang2.txt",sep="", header = T,skip = 11)
+Muestra<-"A005-ang2" ### name of the sample
+t <- 10 ### thickness in nanometers
+##############################
+### V para una muestra wxlxt en cm3 ###
+V<- t*1e-7 * 0.7 *1.05
+
+data.frame(data)
+colnames(data) <- c("Field","Moment")
+minM<-min(data[,"Moment"],na.rm = T)
+maxM<-max(data[,"Moment"],na.rm = T)
+offset<-(maxM+minM)/2
+data_offset <- data-offset
+data.frame(data_offset)
+Msat<-(max(data_offset[,2])-min(data_offset[,2]))/2
+Ms<- Msat/V
+z<-format(round(Ms, 2), nsmall = 2)
+
+
+curva<- ggplot(data_offset, aes(x = Field, y = Moment)) + 
+        labs(title = paste(Muestra,"\nMs=",z,"emu/cm3"), x="Magnetic Field (Oe)", y="Moment (emu)") +
+        geom_point(colour="blue", size=2.5,shape=19) + 
+        theme(text = element_text(size = 30)) +
+        #annotate("text", x=150, y= 2e-4, label=paste(Muestra,"- Ms=",z,"emu/cm3"),size = 6) +
+        geom_vline(xintercept = 0) +
+        geom_hline(yintercept = 0) + xlim(-100,100)+
+      geom_path(linetype="solid", colour="blue") 
+
+curva
+pdf(paste(Muestra,".pdf"),onefile = F, paper = "USr", width = 11, height = 8.5)
+curva
+dev.off()
