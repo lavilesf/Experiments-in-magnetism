@@ -3,8 +3,6 @@ library(readxl)
 library(readr)
 library(tidyverse)
 library(dplyr)
-library(knitr)
-library(kableExtra)
 library(data.table)
 library(foreign)
 
