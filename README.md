@@ -1,6 +1,6 @@
 - 👋 Hi, I’m @lavilesf
 - 👀 I’m interested in python,  R
-- 🌱 I’m currently learning R
+- 🌱 Programming in R
 - 💞️ I’m looking to collaborate on anything related to programs for physics of magnetism, magnetic materials and spintronics
 - 📫 How to reach me lavilesf@cab.cnea.gov.ar
 
